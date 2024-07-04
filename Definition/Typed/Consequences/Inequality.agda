@@ -1,9 +1,10 @@
 {-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible #-}
 
 module Definition.Typed.Consequences.Inequality where
 
 open import Definition.Untyped
-  hiding (U≢ne; ℕ≢ne; B≢ne; U≢B; ℕ≢B; U≢∪; ℕ≢∪ ; Empty≢∪ ; Unit≢∪ ; ∪≢ne; U≢∥; ℕ≢∥ ; Empty≢∥ ; Unit≢∥ ; ∥≢ne)
+  hiding (U≢ne; ℕ≢ne; B≢ne; U≢B; ℕ≢B; U≢∪; ℕ≢∪ ; Empty≢∪ ; Unit≢∪ ; ∪≢ne; U≢∥; ℕ≢∥ ; Empty≢∥ ; Unit≢∥ ; ∥≢ne ; U≢ℕ)
 open import Definition.Typed
 open import Definition.Typed.Properties using (subset* ; wfEq ; whnfRed* ; idRed:*:)
 open import Definition.Typed.EqRelInstance

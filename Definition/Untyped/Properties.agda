@@ -1,6 +1,7 @@
 -- Laws for weakenings and substitutions.
 
 {-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible #-}
 
 module Definition.Untyped.Properties where
 

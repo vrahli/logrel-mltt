@@ -1,6 +1,7 @@
 -- Raw terms, weakening (renaming) and substitution.
 
 {-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible #-}
 
 module Definition.Untyped where
 
@@ -303,6 +304,9 @@ U≢B BΣ ()
 
 U≢∪ : U PE.≢ F ∪ H
 U≢∪ ()
+
+U≢ℕ : U {n} PE.≢ ℕ
+U≢ℕ ()
 
 U≢∥ : U PE.≢ ∥ F ∥
 U≢∥ ()
