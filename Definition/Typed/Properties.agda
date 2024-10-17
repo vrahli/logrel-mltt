@@ -99,6 +99,14 @@ wfEq (Π-cong F F≡H G≡E) = wf F
 wfEq (Σ-cong F x₁ x₂) = wf F
 wfEq (∪-cong x₁ x₂) = wfEq x₁
 wfEq (∥-cong x) = wfEq x
+wfEq (Elℕ-cong ⊢Γ) = ⊢Γ
+wfEq (ElEmpty-cong ⊢Γ) = ⊢Γ
+wfEq (ElUnit-cong ⊢Γ) = ⊢Γ
+wfEq (ElΠ-cong ⊢F F≡H G≡E) = wf ⊢F
+wfEq (ElΣ-cong ⊢F F≡H G≡E) = wf ⊢F
+wfEq (El∥-cong A≡B) = wfEqTerm A≡B
+wfEq (El∪-cong A≡B C≡D) = wfEqTerm A≡B
+wfEq (El-cong A≡B) = wfEq A≡B
 
 -- Reduction is a subset of conversion
 
@@ -164,7 +172,6 @@ redFirst* : Γ ⊢ A ⇒* B → Γ ⊢ A
 redFirst* (id A) = A
 redFirst* (A⇒A′ ⇨ A′⇒*B) = redFirst A⇒A′
 
-
 -- No neutral terms are well-formed in an empty context
 
 noNe : ε ⊢ t ∷ A → Neutral t → ⊥
@@ -199,7 +206,7 @@ neRedTerm (∥ₑ-subst A B f a) (∥ₑₙ x) = neRedTerm a x
 neRedTerm (∥-β B a f) (∥ₑₙ ())
 
 neRed : (d : Γ ⊢ A ⇒ B) (N : Neutral A) → ⊥
-neRed (univ x) N = neRedTerm x N
+neRed (univ x) (Elₙ N) = neRedTerm x N
 
 -- Whnfs do not weak head reduce
 
@@ -222,7 +229,7 @@ whnfRedTerm (∥ₑ-subst A B f a) (ne (∥ₑₙ x)) = neRedTerm a x
 whnfRedTerm (∥-β B a f) (ne (∥ₑₙ ()))
 
 whnfRed : (d : Γ ⊢ A ⇒ B) (w : Whnf A) → ⊥
-whnfRed (univ x) w = whnfRedTerm x w
+whnfRed (univ x) (ne (Elₙ w)) = whnfRedTerm x (ne w)
 
 whnfRed*Term : (d : Γ ⊢ t ⇒* u ∷ A) (w : Whnf t) → t PE.≡ u
 whnfRed*Term (id x) Uₙ      = PE.refl
@@ -233,6 +240,13 @@ whnfRed*Term (id x) ∥ₙ      = PE.refl
 whnfRed*Term (id x) ℕₙ      = PE.refl
 whnfRed*Term (id x) Emptyₙ  = PE.refl
 whnfRed*Term (id x) Unitₙ   = PE.refl
+whnfRed*Term (id x) Π′ₙ     = PE.refl
+whnfRed*Term (id x) Σ′ₙ     = PE.refl
+whnfRed*Term (id x) ∪′ₙ     = PE.refl
+whnfRed*Term (id x) ∥′ₙ     = PE.refl
+whnfRed*Term (id x) ℕ′ₙ     = PE.refl
+whnfRed*Term (id x) Empty′ₙ = PE.refl
+whnfRed*Term (id x) Unit′ₙ  = PE.refl
 whnfRed*Term (id x) lamₙ    = PE.refl
 whnfRed*Term (id x) prodₙ   = PE.refl
 whnfRed*Term (id x) zeroₙ   = PE.refl
@@ -288,7 +302,7 @@ whrDetTerm (∥ₑ-subst A B f a) (∥-β B′ a′ f′) = ⊥-elim (whnfRedTer
 whrDetTerm (∥-β B a f) (∥ₑ-subst A′ B′ f′ a′) = ⊥-elim (whnfRedTerm a′ ∥ᵢₙ)
 
 whrDet : (d : Γ ⊢ A ⇒ B) (d′ : Γ ⊢ A ⇒ B′) → B PE.≡ B′
-whrDet (univ x) (univ x₁) = whrDetTerm x x₁
+whrDet (univ x) (univ x₁) = PE.cong El (whrDetTerm x x₁)
 
 whrDet↘Term : (d : Γ ⊢ t ↘ u ∷ A) (d′ : Γ ⊢ t ⇒* u′ ∷ A) → Γ ⊢ u′ ⇒* u ∷ A
 whrDet↘Term (proj₁ , proj₂) (id x) = proj₁
@@ -361,7 +375,7 @@ redU*Term (x ⇨ A⇒*U) = redU*Term A⇒*U
 -- Nothing reduces to U
 
 redU : Γ ⊢ A ⇒ U → ⊥
-redU (univ x) = redU*Term′ PE.refl x
+redU () --(univ x) = redU*Term′ PE.refl x
 
 redU* : Γ ⊢ A ⇒* U → A PE.≡ U
 redU* (id x) = PE.refl

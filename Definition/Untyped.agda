@@ -47,36 +47,44 @@ data GenTs (A : Nat → Set) : Nat → List Nat → Set where
 -- and the number of new variables bound by each sub term
 
 data Kind : (ns : List Nat) → Set where
-  Ukind : Kind []
+  Ukind  : Kind []
+  Elkind : Kind (0 ∷ [])
 
   Pikind  : Kind (0 ∷ 1 ∷ [])
   Lamkind : Kind (1 ∷ [])
   Appkind : Kind (0 ∷ 0 ∷ [])
+  TPikind : Kind (0 ∷ 1 ∷ [])
 
-  Sigmakind : Kind (0 ∷ 1 ∷ [])
-  Prodkind  : Kind (0 ∷ 0 ∷ [])
-  Fstkind   : Kind (0 ∷ [])
-  Sndkind   : Kind (0 ∷ [])
+  Sigmakind  : Kind (0 ∷ 1 ∷ [])
+  Prodkind   : Kind (0 ∷ 0 ∷ [])
+  Fstkind    : Kind (0 ∷ [])
+  Sndkind    : Kind (0 ∷ [])
+  TSigmakind : Kind (0 ∷ 1 ∷ [])
 
   Natkind    : Kind []
   Zerokind   : Kind []
   Suckind    : Kind (0 ∷ [])
   Natreckind : Kind (1 ∷ 0 ∷ 0 ∷ 0 ∷ [])
+  TNatkind   : Kind []
 
-  Unitkind : Kind []
-  Starkind : Kind []
+  Unitkind  : Kind []
+  Starkind  : Kind []
+  TUnitkind : Kind []
 
   Emptykind    : Kind []
   Emptyreckind : Kind (0 ∷ 0 ∷ [])
+  TEmptykind   : Kind []
 
   Unionkind  : Kind (0 ∷ 0 ∷ [])
   Inlkind    : Kind (0 ∷ [])
   Inrkind    : Kind (0 ∷ [])
   Caseskind  : Kind (0 ∷ 0 ∷ 0 ∷ 0 ∷ [])
+  TUnionkind : Kind (0 ∷ 0 ∷ [])
 
   Trunckind  : Kind (0 ∷ [])
   TruncIkind : Kind (0 ∷ [])
   TruncEkind : Kind (0 ∷ 0 ∷ 0 ∷ [])
+  TTrunckind : Kind (0 ∷ [])
 
 -- Terms are indexed by its number of unbound variables and are either:
 -- de Bruijn style variables or
@@ -101,27 +109,44 @@ private
 U      : Term n                      -- Universe.
 U = gen Ukind []
 
+El : (A : Term n) → Term n
+El A = gen Elkind (A ∷ [])
+
 Π_▹_ : (A : Term n) (B : Term (1+ n)) → Term n  -- Dependent function type (B is a binder).
 Π A ▹ B = gen Pikind (A ∷ B ∷ [])
+
+Π′_▹_ : (A : Term n) (B : Term (1+ n)) → Term n  -- Dependent function type (B is a binder).
+Π′ A ▹ B = gen TPikind (A ∷ B ∷ [])
 
 Σ_▹_ : (A : Term n) (B : Term (1+ n)) → Term n  -- Dependent sum type (B is a binder).
 Σ A ▹ B = gen Sigmakind (A ∷ B ∷ [])
 
+Σ′_▹_ : (A : Term n) (B : Term (1+ n)) → Term n  -- Dependent sum type (B is a binder).
+Σ′ A ▹ B = gen TSigmakind (A ∷ B ∷ [])
+
 ℕ      : Term n                      -- Type of natural numbers.
 ℕ = gen Natkind []
+
+ℕ′      : Term n                      -- Type of natural numbers.
+ℕ′ = gen TNatkind []
 
 Empty : Term n                       -- Empty type
 Empty = gen Emptykind []
 
+Empty′ : Term n                       -- Empty type
+Empty′ = gen TEmptykind []
+
 Unit  : Term n                       -- Unit type
 Unit = gen Unitkind []
+
+Unit′  : Term n                       -- Unit type
+Unit′ = gen TUnitkind []
 
 lam    : (t : Term (1+ n)) → Term n  -- Function abstraction (binder).
 lam t = gen Lamkind (t ∷ [])
 
 _∘_    : (t u : Term n) → Term n     -- Application.
 t ∘ u = gen Appkind (t ∷ u ∷ [])
-
 
 prod : (t u : Term n) → Term n       -- Dependent products
 prod t u = gen Prodkind (t ∷ u ∷ [])
@@ -148,6 +173,9 @@ natrec A t u v = gen Natreckind (A ∷ t ∷ u ∷ v ∷ [])
 ∥_∥ : (A : Term n) → Term n
 ∥ A ∥  = gen Trunckind (A ∷ [])
 
+∥_∥′ : (A : Term n) → Term n
+∥ A ∥′  = gen TTrunckind (A ∷ [])
+
 ∥ᵢ : (a : Term n) → Term n
 ∥ᵢ a = gen TruncIkind (a ∷ [])
 
@@ -162,6 +190,9 @@ Emptyrec A e = gen Emptyreckind (A ∷ e ∷ [])
 
 _∪_ : (A B : Term n) → Term n
 A ∪ B = gen Unionkind (A ∷ B ∷ [])
+
+_∪′_ : (A B : Term n) → Term n
+A ∪′ B = gen Unionkind (A ∷ B ∷ [])
 
 injl : (t : Term n) → Term n
 injl t = gen Inlkind (t ∷ [])
@@ -190,6 +221,10 @@ data BindingType : Set where
 ⟦_⟧_▹_ : BindingType → Term n → Term (1+ n) → Term n
 ⟦ BΠ ⟧ F ▹ G = Π F ▹ G
 ⟦ BΣ ⟧ F ▹ G = Σ F ▹ G
+
+⟦_⟧′_▹_ : BindingType → Term n → Term (1+ n) → Term n
+⟦ BΠ ⟧′ F ▹ G = Π′ F ▹ G
+⟦ BΣ ⟧′ F ▹ G = Σ′ F ▹ G
 
 -- Injectivity of term constructors w.r.t. propositional equality.
 
@@ -239,6 +274,7 @@ data Neutral : Term n → Set where
   Emptyrecₙ : Neutral t   → Neutral (Emptyrec A t)
   casesₙ    : Neutral t   → Neutral (cases A t u v)
   ∥ₑₙ       : Neutral a   → Neutral (∥ₑ A a f)
+  Elₙ       : Neutral a   → Neutral (El a)
 
 
 -- Weak head normal forms (whnfs).
@@ -256,6 +292,15 @@ data Whnf {n : Nat} : Term n → Set where
   ℕₙ     : Whnf ℕ
   Unitₙ  : Whnf Unit
   Emptyₙ : Whnf Empty
+
+  -- Type constructors (terms) are whnfs.
+  Π′ₙ     : Whnf (Π′ A ▹ B)
+  Σ′ₙ     : Whnf (Σ′ A ▹ B)
+  ∪′ₙ     : Whnf (F ∪′ H)
+  ∥′ₙ     : Whnf ∥ A ∥′
+  ℕ′ₙ     : Whnf ℕ′
+  Unit′ₙ  : Whnf Unit′
+  Empty′ₙ : Whnf Empty′
 
   -- Introductions are whnfs.
   lamₙ  : Whnf (lam t)
@@ -574,6 +619,7 @@ wkNeutral ρ (natrecₙ n)   = natrecₙ (wkNeutral ρ n)
 wkNeutral ρ (Emptyrecₙ e) = Emptyrecₙ (wkNeutral ρ e)
 wkNeutral ρ (casesₙ e)    = casesₙ (wkNeutral ρ e)
 wkNeutral ρ (∥ₑₙ e)       = ∥ₑₙ (wkNeutral ρ e)
+wkNeutral ρ (Elₙ e)       = Elₙ (wkNeutral ρ e)
 
 -- Weakening can be applied to our whnf views.
 
@@ -622,6 +668,15 @@ wkWhnf ρ ∥ₙ      = ∥ₙ
 wkWhnf ρ ℕₙ      = ℕₙ
 wkWhnf ρ Emptyₙ  = Emptyₙ
 wkWhnf ρ Unitₙ   = Unitₙ
+--
+wkWhnf ρ Π′ₙ     = Π′ₙ
+wkWhnf ρ Σ′ₙ     = Σ′ₙ
+wkWhnf ρ ∪′ₙ     = ∪′ₙ
+wkWhnf ρ ∥′ₙ     = ∥′ₙ
+wkWhnf ρ ℕ′ₙ     = ℕ′ₙ
+wkWhnf ρ Empty′ₙ = Empty′ₙ
+wkWhnf ρ Unit′ₙ  = Unit′ₙ
+--
 wkWhnf ρ lamₙ    = lamₙ
 wkWhnf ρ prodₙ   = prodₙ
 wkWhnf ρ zeroₙ   = zeroₙ

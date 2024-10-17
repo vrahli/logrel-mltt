@@ -56,28 +56,28 @@ mutual
     ∥_∥ⱼ   : Γ ⊢ A
            → Γ ⊢ ∥ A ∥
     univ   : Γ ⊢ A ∷ U
-           → Γ ⊢ A
+           → Γ ⊢ El A
 
   -- Well-formed term of a type
   data _⊢_∷_ (Γ : Con Term n) : Term n → Term n → Set where
     Πⱼ_▹_     : ∀ {F G}
               → Γ     ⊢ F ∷ U
               → Γ ∙ F ⊢ G ∷ U
-              → Γ     ⊢ Π F ▹ G ∷ U
+              → Γ     ⊢ Π′ F ▹ G ∷ U
     Σⱼ_▹_     : ∀ {F G}
               → Γ     ⊢ F ∷ U
               → Γ ∙ F ⊢ G ∷ U
-              → Γ     ⊢ Σ F ▹ G ∷ U
+              → Γ     ⊢ Σ′ F ▹ G ∷ U
     _∪ⱼ_      : ∀ {A B}
               → Γ ⊢ A ∷ U
               → Γ ⊢ B ∷ U
-              → Γ ⊢ A ∪ B ∷ U
+              → Γ ⊢ A ∪′ B ∷ U
     ∥_∥ⱼ      : ∀ {A}
               → Γ ⊢ A ∷ U
-              → Γ ⊢ ∥ A ∥ ∷ U
-    ℕⱼ        : ⊢ Γ → Γ ⊢ ℕ ∷ U
-    Emptyⱼ    : ⊢ Γ → Γ ⊢ Empty ∷ U
-    Unitⱼ     : ⊢ Γ → Γ ⊢ Unit ∷ U
+              → Γ ⊢ ∥ A ∥′ ∷ U
+    ℕⱼ        : ⊢ Γ → Γ ⊢ ℕ′ ∷ U
+    Emptyⱼ    : ⊢ Γ → Γ ⊢ Empty′ ∷ U
+    Unitⱼ     : ⊢ Γ → Γ ⊢ Unit′ ∷ U
 
     var       : ∀ {A x}
               → ⊢ Γ
@@ -160,7 +160,7 @@ mutual
   data _⊢_≡_ (Γ : Con Term n) : Term n → Term n → Set where
     univ   : ∀ {A B}
            → Γ ⊢ A ≡ B ∷ U
-           → Γ ⊢ A ≡ B
+           → Γ ⊢ El A ≡ El B
     refl   : ∀ {A}
            → Γ ⊢ A
            → Γ ⊢ A ≡ A
@@ -188,6 +188,30 @@ mutual
     ∥-cong : ∀ {A B}
            → Γ ⊢ A ≡ B
            → Γ ⊢ ∥ A ∥ ≡ ∥ B ∥
+    -- El congruence rules
+    Elℕ-cong     : ⊢ Γ → Γ ⊢ El ℕ′ ≡ ℕ
+    ElEmpty-cong : ⊢ Γ → Γ ⊢ El Empty′ ≡ Empty
+    ElUnit-cong  : ⊢ Γ → Γ ⊢ El Unit′ ≡ Unit
+    ElΠ-cong     : ∀ {F H G E}
+                 → Γ     ⊢ F
+                 → Γ     ⊢ F ≡ H ∷ U
+                 → Γ ∙ F ⊢ G ≡ E ∷ U
+                 → Γ     ⊢ El (Π′ F ▹ G) ≡ Π (El H) ▹ (El E)
+    ElΣ-cong     : ∀ {F H G E}
+                 → Γ     ⊢ F
+                 → Γ     ⊢ F ≡ H ∷ U
+                 → Γ ∙ F ⊢ G ≡ E ∷ U
+                 → Γ     ⊢ El (Σ′ F ▹ G) ≡ Σ (El H) ▹ (El E)
+    El∥-cong     : ∀ {A B}
+                 → Γ ⊢ A ≡ B ∷ U
+                 → Γ ⊢ El (∥ A ∥′) ≡ ∥ El B ∥
+    El∪-cong     : ∀ {A B C D}
+                 → Γ ⊢ A ≡ B ∷ U
+                 → Γ ⊢ C ≡ D ∷ U
+                 → Γ ⊢ El (A ∪′ C) ≡ (El B) ∪ (El D)
+    El-cong      : ∀ {A B}
+                 → Γ ⊢ A ≡ B
+                 → Γ ⊢ El A ≡ El B
 
   -- Term equality
   data _⊢_≡_∷_ (Γ : Con Term n) : Term n → Term n → Term n → Set where
@@ -209,19 +233,19 @@ mutual
                   → Γ     ⊢ F
                   → Γ     ⊢ F ≡ H       ∷ U
                   → Γ ∙ F ⊢ G ≡ E       ∷ U
-                  → Γ     ⊢ Π F ▹ G ≡ Π H ▹ E ∷ U
+                  → Γ     ⊢ Π′ F ▹ G ≡ Π′ H ▹ E ∷ U
     Σ-cong        : ∀ {E F G H}
                   → Γ     ⊢ F
                   → Γ     ⊢ F ≡ H       ∷ U
                   → Γ ∙ F ⊢ G ≡ E       ∷ U
-                  → Γ     ⊢ Σ F ▹ G ≡ Σ H ▹ E ∷ U
+                  → Γ     ⊢ Σ′ F ▹ G ≡ Σ′ H ▹ E ∷ U
     ∪-cong        : ∀ {A B C D}
                   → Γ ⊢ A ≡ B ∷ U
                   → Γ ⊢ C ≡ D ∷ U
-                  → Γ ⊢ A ∪ C ≡ B ∪ D ∷ U
+                  → Γ ⊢ A ∪′ C ≡ B ∪′ D ∷ U
     ∥-cong        : ∀ {A B}
                   → Γ ⊢ A ≡ B ∷ U
-                  → Γ ⊢ ∥ A ∥ ≡ ∥ B ∥ ∷ U
+                  → Γ ⊢ ∥ A ∥′ ≡ ∥ B ∥′ ∷ U
     app-cong      : ∀ {a b f g F G}
                   → Γ ⊢ f ≡ g ∷ Π F ▹ G
                   → Γ ⊢ a ≡ b ∷ F
@@ -445,7 +469,7 @@ data _⊢_⇒_∷_ (Γ : Con Term n) : Term n → Term n → Term n → Set wher
 data _⊢_⇒_ (Γ : Con Term n) : Term n → Term n → Set where
   univ : ∀ {A B}
        → Γ ⊢ A ⇒ B ∷ U
-       → Γ ⊢ A ⇒ B
+       → Γ ⊢ El A ⇒ El B
 
 -- Term reduction closure
 data _⊢_⇒*_∷_ (Γ : Con Term n) : Term n → Term n → Term n → Set where
@@ -532,6 +556,6 @@ data _⊢ˢ_≡_∷_ (Δ : Con Term m) : (σ σ′ : Subst m n) (Γ : Con Term n
 ⟦_⟧ⱼᵤ_▹_ : (W : BindingType) → ∀ {F G}
      → Γ     ⊢ F ∷ U
      → Γ ∙ F ⊢ G ∷ U
-     → Γ     ⊢ ⟦ W ⟧ F ▹ G ∷ U
+     → Γ     ⊢ ⟦ W ⟧′ F ▹ G ∷ U
 ⟦ BΠ ⟧ⱼᵤ ⊢F ▹ ⊢G = Πⱼ ⊢F ▹ ⊢G
 ⟦ BΣ ⟧ⱼᵤ ⊢F ▹ ⊢G = Σⱼ ⊢F ▹ ⊢G
